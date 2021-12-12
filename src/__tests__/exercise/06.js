@@ -38,6 +38,28 @@ test('displays the users current location', async () => {
   )
 })
 
+test('displays error message when geolocation is not supported', async () => {
+  const fakeError = new Error(
+    'Geolocation is not supported or permission denied',
+  )
+
+  let setReturnValue
+  function useMockCurrentPosition() {
+    const state = React.useState([])
+    setReturnValue = state[1]
+    return state[0]
+  }
+  useCurrentPosition.mockImplementation(useMockCurrentPosition)
+
+  render(<Location />)
+  expect(screen.getByLabelText(/loading/i)).toBeInTheDocument()
+
+  act(() => setReturnValue([{}, fakeError]))
+
+  expect(screen.queryByLabelText(/loading/i)).not.toBeInTheDocument()
+  expect(screen.getByRole('alert')).toHaveTextContent(fakeError.message)
+})
+
 /*
 eslint
   no-unused-vars: "off",
